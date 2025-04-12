@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amazon Stock Analysis Around Tariff Event</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <!-- Updated Chart.js and annotation plugin with specific versions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,6 +24,8 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 20px;
             margin-bottom: 30px;
+            position: relative;
+            height: 450px;
         }
         h1, h2 {
             color: #2c3e50;
@@ -127,273 +130,275 @@
     </div>
 
     <script>
-        // Register plugins
-        Chart.register(ChartAnnotation);
-        
-        // Configuration
-        const tariffDate = '2025-01-22';
-        const daysBefore = 10;
-        const daysAfter = 10;
-        
-        // Generate sample data
-        function generateDates(centerDate, daysBefore, daysAfter) {
-            const center = new Date(centerDate);
-            const dates = [];
-            for (let i = -daysBefore; i <= daysAfter; i++) {
-                const date = new Date(center);
-                date.setDate(center.getDate() + i);
-                dates.push(date.toISOString().split('T')[0]);
-            }
-            return dates;
-        }
-        
-        function generateStockData(base, dates, eventIndex, volatility, eventImpact) {
-            const data = [];
-            let value = base;
-            for (let i = 0; i < dates.length; i++) {
-                value = value * (1 + (Math.random() - 0.5) * volatility / 100);
-                if (i === eventIndex) {
-                    value = value * (1 + eventImpact);
-                } else if (i > eventIndex && i < eventIndex + 5) {
-                    value = value * (1 + (Math.random() * 0.01));
+        // Make sure all needed elements are loaded before running the code
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuration
+            const tariffDate = '2025-01-22';
+            const daysBefore = 10;
+            const daysAfter = 10;
+            
+            // Generate sample data
+            function generateDates(centerDate, daysBefore, daysAfter) {
+                const center = new Date(centerDate);
+                const dates = [];
+                for (let i = -daysBefore; i <= daysAfter; i++) {
+                    const date = new Date(center);
+                    date.setDate(center.getDate() + i);
+                    dates.push(date.toISOString().split('T')[0]);
                 }
-                data.push(parseFloat(value.toFixed(2)));
+                return dates;
             }
-            return data;
-        }
-        
-        function generateVolumeData(base, spike, count, eventIndex) {
-            const data = [];
-            for (let i = 0; i < count; i++) {
-                let value = base * (0.9 + Math.random() * 0.2);
-                if (i >= eventIndex && i <= eventIndex + 2) {
-                    value = spike * (0.9 + Math.random() * 0.2);
+            
+            function generateStockData(base, dates, eventIndex, volatility, eventImpact) {
+                const data = [];
+                let value = base;
+                for (let i = 0; i < dates.length; i++) {
+                    value = value * (1 + (Math.random() - 0.5) * volatility / 100);
+                    if (i === eventIndex) {
+                        value = value * (1 + eventImpact);
+                    } else if (i > eventIndex && i < eventIndex + 5) {
+                        value = value * (1 + (Math.random() * 0.01));
+                    }
+                    data.push(parseFloat(value.toFixed(2)));
                 }
-                data.push(parseInt(value));
+                return data;
             }
-            return data;
-        }
-        
-        const dates = generateDates(tariffDate, daysBefore, daysAfter);
-        const eventIndex = dates.indexOf(tariffDate);
-        const amznData = generateStockData(155, dates, eventIndex, 0.8, -0.03);
-        const volumeData = generateVolumeData(45, 80, dates.length, eventIndex);
-        const sp500Data = generateStockData(4800, dates, eventIndex, 1.2, -0.04);
-        
-        // Calculate market drop
-        const marketStart = sp500Data[eventIndex - 1];
-        const marketLow = Math.min(...sp500Data.slice(eventIndex));
-        const marketDrop = ((marketLow - marketStart) / marketStart * 100).toFixed(2);
-        document.getElementById('marketDrop').textContent = marketDrop;
-        
-        // Initialize charts
-        function initPriceChart() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'AMZN Closing Price',
-                        data: amznData,
-                        borderColor: 'darkblue',
-                        backgroundColor: 'rgba(0, 0, 139, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    xMin: eventIndex,
-                                    xMax: eventIndex,
-                                    borderColor: 'crimson',
-                                    borderWidth: 2,
-                                    borderDash: [6, 6],
-                                    label: {
-                                        content: 'Tariff Announcement',
-                                        enabled: true,
-                                        position: 'top'
+            
+            function generateVolumeData(base, spike, count, eventIndex) {
+                const data = [];
+                for (let i = 0; i < count; i++) {
+                    let value = base * (0.9 + Math.random() * 0.2);
+                    if (i >= eventIndex && i <= eventIndex + 2) {
+                        value = spike * (0.9 + Math.random() * 0.2);
+                    }
+                    data.push(parseInt(value));
+                }
+                return data;
+            }
+            
+            const dates = generateDates(tariffDate, daysBefore, daysAfter);
+            const eventIndex = dates.indexOf(tariffDate);
+            const amznData = generateStockData(155, dates, eventIndex, 0.8, -0.03);
+            const volumeData = generateVolumeData(45, 80, dates.length, eventIndex);
+            const sp500Data = generateStockData(4800, dates, eventIndex, 1.2, -0.04);
+            
+            // Calculate market drop
+            const marketStart = sp500Data[eventIndex - 1];
+            const marketLow = Math.min(...sp500Data.slice(eventIndex));
+            const marketDrop = ((marketLow - marketStart) / marketStart * 100).toFixed(2);
+            document.getElementById('marketDrop').textContent = marketDrop;
+            
+            // Initialize charts
+            function initPriceChart() {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'AMZN Closing Price',
+                            data: amznData,
+                            borderColor: 'darkblue',
+                            backgroundColor: 'rgba(0, 0, 139, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        xMin: eventIndex,
+                                        xMax: eventIndex,
+                                        borderColor: 'crimson',
+                                        borderWidth: 2,
+                                        borderDash: [6, 6],
+                                        label: {
+                                            content: 'Tariff Announcement',
+                                            enabled: true,
+                                            position: 'top'
+                                        }
                                     }
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'Date' }
                         },
-                        y: {
-                            title: { display: true, text: 'Price ($)' }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function initVolumeChart() {
-            const ctx = document.getElementById('volumeChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Volume (Millions)',
-                        data: volumeData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    xMin: eventIndex,
-                                    xMax: eventIndex,
-                                    borderColor: 'crimson',
-                                    borderWidth: 2,
-                                    borderDash: [6, 6]
-                                }
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Date' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Price ($)' }
                             }
                         }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Date' } },
-                        y: { title: { display: true, text: 'Volume (Millions)' } }
                     }
-                }
-            });
-        }
-        
-        function initMarketChart() {
-            const ctx = document.getElementById('marketChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'S&P 500',
-                        data: sp500Data,
-                        borderColor: 'darkgreen',
-                        backgroundColor: 'rgba(0, 100, 0, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    xMin: eventIndex,
-                                    xMax: eventIndex,
-                                    borderColor: 'crimson',
-                                    borderWidth: 2,
-                                    borderDash: [6, 6],
-                                    label: {
-                                        content: 'Tariff Announcement',
-                                        enabled: true,
-                                        position: 'top'
-                                    }
-                                },
-                                box1: {
-                                    type: 'box',
-                                    xMin: eventIndex,
-                                    xMax: dates.length - 1,
-                                    yMin: marketLow,
-                                    yMax: sp500Data[eventIndex - 1],
-                                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                                    borderWidth: 0,
-                                    label: {
-                                        content: `Market Drop: ${marketDrop}%`,
-                                        enabled: true,
-                                        position: 'bottom'
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Date' } },
-                        y: { title: { display: true, text: 'Price ($)' } }
-                    }
-                }
-            });
-        }
-        
-        function initFlowDiagram() {
-            const container = document.getElementById('flowDiagram');
-            const width = container.offsetWidth;
-            const height = container.offsetHeight;
-            
-            container.innerHTML = '';
-            
-            const nodes = [
-                { id: "Retail Investors", x: width * 0.2, y: height * 0.2 },
-                { id: "Institutional Investors", x: width * 0.2, y: height * 0.4 },
-                { id: "Market Makers", x: width * 0.5, y: height * 0.5 },
-                { id: "Sector ETFs", x: width * 0.8, y: height * 0.4 },
-                { id: "Underlying Stocks", x: width * 0.8, y: height * 0.2 }
-            ];
-            
-            nodes.forEach(node => {
-                const el = document.createElement('div');
-                el.className = 'node';
-                el.style.left = `${node.x - 60}px`;
-                el.style.top = `${node.y - 60}px`;
-                el.textContent = node.id;
-                container.appendChild(el);
-            });
-            
-            function createArrow(from, to, opacity) {
-                const arrow = document.createElement('div');
-                arrow.className = 'arrow';
-                
-                const dx = to.x - from.x;
-                const dy = to.y - from.y;
-                const length = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                
-                const startX = from.x + Math.cos(angle * Math.PI/180) * 60;
-                const startY = from.y + Math.sin(angle * Math.PI/180) * 60;
-                const adjLength = length - 120;
-                
-                arrow.style.width = `${adjLength}px`;
-                arrow.style.left = `${startX}px`;
-                arrow.style.top = `${startY}px`;
-                arrow.style.transform = `rotate(${angle}deg)`;
-                arrow.style.opacity = opacity;
-                
-                container.appendChild(arrow);
+                });
             }
             
-            createArrow(nodes[0], nodes[1], 0.7);
-            createArrow(nodes[1], nodes[2], 0.8);
-            createArrow(nodes[2], nodes[3], 0.4);
-            createArrow(nodes[3], nodes[4], 0.6);
-        }
-        
-        // Initialize all visualizations
-        initPriceChart();
-        initVolumeChart();
-        initMarketChart();
-        window.addEventListener('load', initFlowDiagram);
-        window.addEventListener('resize', initFlowDiagram);
+            function initVolumeChart() {
+                const ctx = document.getElementById('volumeChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Volume (Millions)',
+                            data: volumeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        xMin: eventIndex,
+                                        xMax: eventIndex,
+                                        borderColor: 'crimson',
+                                        borderWidth: 2,
+                                        borderDash: [6, 6]
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Date' } },
+                            y: { title: { display: true, text: 'Volume (Millions)' } }
+                        }
+                    }
+                });
+            }
+            
+            function initMarketChart() {
+                const ctx = document.getElementById('marketChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'S&P 500',
+                            data: sp500Data,
+                            borderColor: 'darkgreen',
+                            backgroundColor: 'rgba(0, 100, 0, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        xMin: eventIndex,
+                                        xMax: eventIndex,
+                                        borderColor: 'crimson',
+                                        borderWidth: 2,
+                                        borderDash: [6, 6],
+                                        label: {
+                                            content: 'Tariff Announcement',
+                                            enabled: true,
+                                            position: 'top'
+                                        }
+                                    },
+                                    box1: {
+                                        type: 'box',
+                                        xMin: eventIndex,
+                                        xMax: dates.length - 1,
+                                        yMin: marketLow,
+                                        yMax: sp500Data[eventIndex - 1],
+                                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                                        borderWidth: 0,
+                                        label: {
+                                            content: `Market Drop: ${marketDrop}%`,
+                                            enabled: true,
+                                            position: 'bottom'
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Date' } },
+                            y: { title: { display: true, text: 'Price ($)' } }
+                        }
+                    }
+                });
+            }
+            
+            function initFlowDiagram() {
+                const container = document.getElementById('flowDiagram');
+                const width = container.offsetWidth;
+                const height = container.offsetHeight;
+                
+                container.innerHTML = '';
+                
+                const nodes = [
+                    { id: "Retail Investors", x: width * 0.2, y: height * 0.2 },
+                    { id: "Institutional Investors", x: width * 0.2, y: height * 0.4 },
+                    { id: "Market Makers", x: width * 0.5, y: height * 0.5 },
+                    { id: "Sector ETFs", x: width * 0.8, y: height * 0.4 },
+                    { id: "Underlying Stocks", x: width * 0.8, y: height * 0.2 }
+                ];
+                
+                nodes.forEach(node => {
+                    const el = document.createElement('div');
+                    el.className = 'node';
+                    el.style.left = `${node.x - 60}px`;
+                    el.style.top = `${node.y - 60}px`;
+                    el.textContent = node.id;
+                    container.appendChild(el);
+                });
+                
+                function createArrow(from, to, opacity) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    const startX = from.x + Math.cos(angle * Math.PI/180) * 60;
+                    const startY = from.y + Math.sin(angle * Math.PI/180) * 60;
+                    const adjLength = length - 120;
+                    
+                    arrow.style.width = `${adjLength}px`;
+                    arrow.style.left = `${startX}px`;
+                    arrow.style.top = `${startY}px`;
+                    arrow.style.transform = `rotate(${angle}deg)`;
+                    arrow.style.opacity = opacity;
+                    
+                    container.appendChild(arrow);
+                }
+                
+                createArrow(nodes[0], nodes[1], 0.7);
+                createArrow(nodes[1], nodes[2], 0.8);
+                createArrow(nodes[2], nodes[3], 0.4);
+                createArrow(nodes[3], nodes[4], 0.6);
+            }
+            
+            // Initialize all visualizations
+            initPriceChart();
+            initVolumeChart();
+            initMarketChart();
+            initFlowDiagram();
+            
+            // Handle window resize for flow diagram
+            window.addEventListener('resize', initFlowDiagram);
+        });
     </script>
 </body>
 </html>
